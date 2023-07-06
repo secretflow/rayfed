@@ -64,8 +64,6 @@ def _check_sending_objs():
             break
 
     logger.info('Check sending thread was exited.')
-    global _check_send_thread
-    _check_send_thread = None
 
 
 def _main_thread_monitor():
@@ -108,3 +106,7 @@ def wait_sending():
     if _check_send_thread:
         notify_to_exit()
         _check_send_thread.join()
+        _check_send_thread = None
+        logger.info('Clearing sending queue.')
+        global _sending_obj_refs_q
+        _sending_obj_refs_q.clear()
