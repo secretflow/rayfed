@@ -23,6 +23,11 @@ import fed
 from fed._private.compatible_utils import _compare_version_strings
 from fed.fed_object import FedObject
 
+try:
+    from jax.tree_util import tree_flatten, tree_unflatten
+except ImportError:
+    from fed.tree_util import tree_flatten, tree_unflatten
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +53,7 @@ def get_package_version(package_name: str) -> str:
 def resolve_dependencies(current_party, current_fed_task_id, *args, **kwargs):
     from fed.proxy.barriers import recv
 
-    flattened_args, tree = fed.tree_util.tree_flatten((args, kwargs))
+    flattened_args, tree = tree_flatten((args, kwargs))
     indexes = []
     resolved = []
     for idx, arg in enumerate(flattened_args):
@@ -79,7 +84,7 @@ def resolve_dependencies(current_party, current_fed_task_id, *args, **kwargs):
         for idx, actual_val in zip(indexes, resolved):
             flattened_args[idx] = actual_val
 
-    resolved_args, resolved_kwargs = fed.tree_util.tree_unflatten(flattened_args, tree)
+    resolved_args, resolved_kwargs = tree_unflatten(tree, flattened_args)
     return resolved_args, resolved_kwargs
 
 

@@ -199,7 +199,7 @@ def tree_flatten(pytree: PyTree) -> Tuple[List[Any], TreeSpec]:
     return result, TreeSpec(node_type, context, children_specs)
 
 
-def tree_unflatten(values: List[Any], spec: TreeSpec) -> PyTree:
+def tree_unflatten(spec: TreeSpec, values: List[Any]) -> PyTree:
     """Given a list of values and a TreeSpec, builds a pytree.
     This is the inverse operation of `tree_flatten`.
     """
@@ -225,7 +225,7 @@ def tree_unflatten(values: List[Any], spec: TreeSpec) -> PyTree:
     child_pytrees = []
     for child_spec in spec.children_specs:
         end += child_spec.num_leaves
-        child_pytrees.append(tree_unflatten(values[start:end], child_spec))
+        child_pytrees.append(tree_unflatten(child_spec, values[start:end]))
         start = end
 
     return unflatten_fn(child_pytrees, spec.context)
