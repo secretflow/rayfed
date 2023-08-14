@@ -268,9 +268,8 @@ def _start_sender_proxy(
 
     logger.debug(f"Starting SenderProxyActor with options: {actor_options}")
     global _SENDER_PROXY_ACTOR
-    global _SENDER_PROXY_ACTOR_NAME
     _SENDER_PROXY_ACTOR = SenderProxyActor.options(
-        name=_SENDER_PROXY_ACTOR_NAME, **actor_options
+        name=sender_proxy_actor_name(), **actor_options
     )
 
     _SENDER_PROXY_ACTOR = _SENDER_PROXY_ACTOR.remote(
@@ -390,9 +389,8 @@ def _start_sender_receiver_proxy(
     logger.debug(f"Starting ReceiverProxyActor with options: {actor_options}")
 
     global _SENDER_RECEIVER_PROXY_ACTOR
-    global _RECEIVER_PROXY_ACTOR_NAME
     _SENDER_RECEIVER_PROXY_ACTOR = SenderReceiverProxyActor.options(
-        name=_RECEIVER_PROXY_ACTOR_NAME, **actor_options
+        name=receiver_proxy_actor_name(), **actor_options
     ).remote(
         addresses=addresses,
         party=party,
@@ -414,8 +412,7 @@ def send(
     upstream_seq_id,
     downstream_seq_id,
 ):
-    global _SENDER_PROXY_ACTOR_NAME
-    sender_proxy = ray.get_actor(_SENDER_PROXY_ACTOR_NAME)
+    sender_proxy = ray.get_actor(sender_proxy_actor_name())
     res = sender_proxy.send.remote(
         dest_party=dest_party,
         data=data,
@@ -428,8 +425,7 @@ def send(
 
 def recv(party: str, src_party: str, upstream_seq_id, curr_seq_id):
     assert party, 'Party can not be None.'
-    global _RECEIVER_PROXY_ACTOR_NAME
-    receiver_proxy = ray.get_actor(_RECEIVER_PROXY_ACTOR_NAME)
+    receiver_proxy = ray.get_actor(receiver_proxy_actor_name())
     return receiver_proxy.get_data.remote(src_party, upstream_seq_id, curr_seq_id)
 
 

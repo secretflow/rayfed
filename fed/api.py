@@ -150,7 +150,7 @@ def init(
         exit_on_sending_failure=cross_silo_comm_config.exit_on_sending_failure
     )
     if receiver_sender_proxy_cls is not None:
-        proxy_actor_name = 'sender_recevier_actor'
+        proxy_actor_name = 'SenderRecevierActor'
         set_sender_proxy_actor_name(proxy_actor_name)
         set_receiver_proxy_actor_name(proxy_actor_name)
         _start_sender_receiver_proxy(
@@ -173,6 +173,8 @@ def init(
             from fed.proxy.grpc.grpc_proxy import GrpcReceiverProxy
 
             receiver_proxy_cls = GrpcReceiverProxy
+
+        set_receiver_proxy_actor_name('ReceiverProxyActor')
         _start_receiver_proxy(
             addresses=addresses,
             party=party,
@@ -191,6 +193,8 @@ def init(
             from fed.proxy.grpc.grpc_proxy import GrpcSenderProxy
 
             sender_proxy_cls = GrpcSenderProxy
+
+        set_sender_proxy_actor_name('SenderProxyActor')
         _start_sender_proxy(
             addresses=addresses,
             party=party,
