@@ -40,7 +40,7 @@ class CleanCommand(setuptools.Command):
 
 setup(
     name='secretflow-rayfed',
-    version='0.2.0a3',
+    version='0.2.0a7',
     license='Apache 2.0',
     description='A multiple parties joint, distributed execution engine based on Ray,'
                 'to help build your own federated learning frameworks in minutes.',
