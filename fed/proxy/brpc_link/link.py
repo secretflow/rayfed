@@ -34,6 +34,7 @@ class BrpcLinkSenderReceiverProxy(SenderReceiverProxy):
         tls_config: Dict = None,
         proxy_config: Dict = None,
     ) -> None:
+        logging.info(f'brpc options: {proxy_config}')
         proxy_config = BrpcLinkCrossSiloMessageConfig.from_dict(proxy_config)
         super().__init__(addresses, self_party, tls_config, proxy_config)
         self._parties_rank = {
