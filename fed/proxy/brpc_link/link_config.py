@@ -16,6 +16,9 @@ class BrpcLinkCrossSiloMessageConfig(CrossSiloMessageConfig):
     throttle_window_size: int = None
     brpc_channel_protocol: str = None
     brpc_channel_connection_type: str = None
+    brpc_retry_count: int = None
+    brpc_retry_interval_ms: int = None
+    brpc_aggressive_retry: bool = None
 
     def dump_to_link_desc(self, link_desc: link.Desc):
         if self.timeout_in_ms is not None:
@@ -39,6 +42,12 @@ class BrpcLinkCrossSiloMessageConfig(CrossSiloMessageConfig):
             link_desc.brpc_channel_protocol = self.brpc_channel_protocol
         if self.brpc_channel_connection_type is not None:
             link_desc.brpc_channel_connection_type = self.brpc_channel_connection_type
+        if self.brpc_aggressive_retry is not None:
+            link_desc.brpc_aggressive_retry =  self.brpc_aggressive_retry
+        if self.brpc_retry_count is not None:
+            link_desc.brpc_retry_count = self.brpc_retry_count
+        if self.brpc_retry_interval_ms is not None:
+            link_desc.brpc_retry_interval_ms = self.brpc_retry_interval_ms
         
         if not hasattr(link_desc, 'recv_timeout_ms'):
             # set default timeout 3600s
