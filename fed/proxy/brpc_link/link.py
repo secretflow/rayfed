@@ -5,6 +5,7 @@ from typing import Dict
 import cloudpickle
 import spu.libspu.link as link
 
+from fed.exceptions import FedRemoteError
 from fed.proxy.barriers import (
     add_two_dim_dict,
     key_exists_in_two_dim_dict,
@@ -94,7 +95,13 @@ class BrpcLinkSenderReceiverProxy(SenderReceiverProxy):
         rank = self._parties_rank[src_party]
         if key_exists_in_two_dim_dict(all_data, upstream_seq_id, curr_seq_id):
             logger.debug(f"Getted {data_log_msg}.")
-            return pop_from_two_dim_dict(all_data, upstream_seq_id, curr_seq_id)
+            data = pop_from_two_dim_dict(all_data, upstream_seq_id, curr_seq_id)
+            if isinstance(data, FedRemoteError):
+                logger.warn(f"Receiving exception: {type(data)}, {data} from {src_party}, "
+                            f"upstream_seq_id: {upstream_seq_id}, "
+                            f"curr_seq_id: {curr_seq_id}. Re-raise it.")
+                raise data
+            return data
 
         while True:
             msg = self._linker.recv(rank)
@@ -109,6 +116,11 @@ class BrpcLinkSenderReceiverProxy(SenderReceiverProxy):
                 upstream_seq_id
             ) and downstream_seq_id_in_msg == str(curr_seq_id):
                 logger.debug(f"Getted {data_log_msg}.")
+                if isinstance(data, FedRemoteError):
+                    logger.warn(f"Receiving exception: {type(data)}, {data} from {src_party}, "
+                                f"upstream_seq_id: {upstream_seq_id}, "
+                                f"curr_seq_id: {curr_seq_id}. Re-raise it.")
+                    raise data
                 return data
             else:
                 add_two_dim_dict(
