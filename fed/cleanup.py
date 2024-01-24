@@ -202,7 +202,7 @@ class CleanupManager:
     def _process_error_sending_task_return(self, error_msg):
         error_ref, dest_party, upstream_seq_id, downstream_seq_id = error_msg
         try:
-            res = ray.get(error_ref)
+            res = ray.get(error_ref, timeout=30)
             logger.debug(f"Sending error got response: {res}.")
         except Exception:
             res = False
