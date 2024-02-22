@@ -173,6 +173,9 @@ class SenderProxyActor:
         logger.debug(f"Succeeded to send {send_log_msg}. Response is {response}")
         return True  # True indicates it's sent successfully.
 
+    async def stop(self):
+        await self._proxy_instance.stop()
+
     async def _get_stats(self):
         return self._stats
 
@@ -411,6 +414,9 @@ class SenderReceiverProxyActor:
     def _get_proxy_config(self, dest_party=None):
         return self._proxy_instance.get_proxy_config(dest_party)
 
+    def stop(self):
+        self._proxy_instance.stop()
+
 
 def _start_sender_receiver_proxy(
     addresses: str,
@@ -457,6 +463,17 @@ def _start_sender_receiver_proxy(
     )
     assert server_state[0], server_state[1]
     logger.info("Succeeded to create receiver proxy actor.")
+
+
+def _stop_sender_proxy():
+    logger.info('Stop sender proxy actor...')
+    try:
+        sender_proxy = ray.get_actor(sender_proxy_actor_name())
+        ray.get(sender_proxy.stop.remote())
+        logger.info('Sender proxy actor stoped.')
+    except ValueError as e:
+        # Do nothing if send proxy actor is not found.
+        pass
 
 
 def send(

@@ -10,15 +10,19 @@ def _signal_handler(signum, frame):
 
 class ActorWithComm:
     """For actor who wants to send message inside actor.
-    
+
     Since global_context is initialized in main processor but actor in another
     processor has no the global context and can not do message sending.
     Every Actor should init its own global context and clean it during destroying
     (Ray will send SIGINT to actor before collecting it).
     """
+
     def __init__(self, job_name=constants.RAYFED_DEFAULT_JOB_NAME):
         signal.signal(signal.SIGINT, _signal_handler)
         current_party = get_cluster_config(job_name).current_party
         global_context.init_global_context(
-            current_party=current_party, job_name=job_name
+            current_party=current_party,
+            job_name=job_name,
+            exit_on_sending_failure=True,
+            continue_waiting_for_data_sending_on_error=False,
         )

@@ -37,6 +37,10 @@ class SenderProxy(abc.ABC):
     async def send(self, dest_party, data, upstream_seq_id, downstream_seq_id):
         pass
 
+    @abc.abstractmethod
+    async def stop(self):
+        pass
+
     async def is_ready(self):
         return True
 
@@ -100,6 +104,10 @@ class SenderReceiverProxy(abc.ABC):
 
     @abc.abstractmethod
     def send(self, dest_party, data, upstream_seq_id, downstream_seq_id):
+        pass
+
+    @abc.abstractmethod
+    def stop(self):
         pass
 
     def get_proxy_config(self):
