@@ -14,8 +14,6 @@ def read_requirements():
     requirements = []
     with open('requirements.txt') as file:
         requirements = file.read().splitlines()
-    requirements = [req for req in requirements if not req.startswith('ray')]
-    requirements.append('secretflow-ray>=2.1.0')
     print("Requirements: ", requirements)
     return requirements
 
@@ -40,7 +38,7 @@ class CleanCommand(setuptools.Command):
 
 setup(
     name='secretflow-rayfed',
-    version='0.2.0a21',
+    version='0.2.1a1',
     license='Apache 2.0',
     description='A multiple parties joint, distributed execution engine based on Ray,'
                 'to help build your own federated learning frameworks in minutes.',
