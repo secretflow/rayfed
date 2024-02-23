@@ -349,8 +349,6 @@ def _shutdown(intended=True):
         compatible_utils._clear_internal_kv()
         clear_global_context(wait_for_sending=wait_for_sending)
 
-        _stop_sender_proxy()
-
         logger.info("Shutdowned rayfed.")
 
         if exit_on_sending_failure:
