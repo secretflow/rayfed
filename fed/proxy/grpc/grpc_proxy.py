@@ -153,6 +153,9 @@ class GrpcSenderProxy(SenderProxy):
         self.handle_response_error(response)
         return response.result
 
+    async def stop(self):
+        pass
+
     def get_grpc_config_by_party(self, dest_party):
         """Overide global config by party specific config"""
         grpc_metadata = self._grpc_metadata

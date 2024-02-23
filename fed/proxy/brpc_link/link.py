@@ -97,9 +97,11 @@ class BrpcLinkSenderReceiverProxy(SenderReceiverProxy):
             logger.debug(f"Getted {data_log_msg}.")
             data = pop_from_two_dim_dict(all_data, upstream_seq_id, curr_seq_id)
             if isinstance(data, FedRemoteError):
-                logger.warn(f"Receiving exception: {type(data)}, {data} from {src_party}, "
-                            f"upstream_seq_id: {upstream_seq_id}, "
-                            f"curr_seq_id: {curr_seq_id}. Re-raise it.")
+                logger.warn(
+                    f"Receiving exception: {type(data)}, {data} from {src_party}, "
+                    f"upstream_seq_id: {upstream_seq_id}, "
+                    f"curr_seq_id: {curr_seq_id}. Re-raise it."
+                )
                 raise data
             return data
 
@@ -117,12 +119,17 @@ class BrpcLinkSenderReceiverProxy(SenderReceiverProxy):
             ) and downstream_seq_id_in_msg == str(curr_seq_id):
                 logger.debug(f"Getted {data_log_msg}.")
                 if isinstance(data, FedRemoteError):
-                    logger.warn(f"Receiving exception: {type(data)}, {data} from {src_party}, "
-                                f"upstream_seq_id: {upstream_seq_id}, "
-                                f"curr_seq_id: {curr_seq_id}. Re-raise it.")
+                    logger.warn(
+                        f"Receiving exception: {type(data)}, {data} from {src_party}, "
+                        f"upstream_seq_id: {upstream_seq_id}, "
+                        f"curr_seq_id: {curr_seq_id}. Re-raise it."
+                    )
                     raise data
                 return data
             else:
                 add_two_dim_dict(
                     all_data, upstream_seq_id_in_msg, downstream_seq_id_in_msg, data
                 )
+
+    def stop(self):
+        self._linker.stop_link()
