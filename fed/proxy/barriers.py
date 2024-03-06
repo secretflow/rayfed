@@ -20,9 +20,9 @@ from typing import Any, Dict
 import ray
 
 import fed.config as fed_config
-from fed.exceptions import FedRemoteError
 from fed._private import constants
 from fed._private.global_context import get_global_context
+from fed.exceptions import FedRemoteError
 from fed.proxy.base_proxy import ReceiverProxy, SenderProxy, SenderReceiverProxy
 from fed.utils import setup_logger
 
@@ -339,7 +339,7 @@ _DEFAULT_SENDER_RECEIVER_PROXY_OPTIONS = {
 }
 
 
-@ray.remote
+@ray.remote(concurrency_groups={"send": 1, "recv": 1})
 class SenderReceiverProxyActor:
     def __init__(
         self,
@@ -358,6 +358,9 @@ class SenderReceiverProxyActor:
             job_name=job_name,
         )
 
+        import threading
+
+        self._stats_lock = threading.Lock()
         self._stats = {'send_op_count': 0, 'receive_op_count': 0}
         self._addresses = addresses
         self._party = party
@@ -374,11 +377,14 @@ class SenderReceiverProxyActor:
     def start(self):
         self._proxy_instance.start()
 
+    @ray.method(concurrency_group="recv")
     def get_data(self, src_party, upstream_seq_id, curr_seq_id):
-        self._stats["receive_op_count"] += 1
+        with self._stats_lock:
+            self._stats["receive_op_count"] += 1
         data = self._proxy_instance.get_data(src_party, upstream_seq_id, curr_seq_id)
         return data
 
+    @ray.method(concurrency_group="send")
     def send(
         self,
         dest_party,
@@ -386,7 +392,8 @@ class SenderReceiverProxyActor:
         upstream_seq_id,
         downstream_seq_id,
     ):
-        self._stats["send_op_count"] += 1
+        with self._stats_lock:
+            self._stats["send_op_count"] += 1
         assert (
             dest_party in self._addresses
         ), f'Failed to find {dest_party} in cluster {self._addresses}.'
@@ -409,7 +416,8 @@ class SenderReceiverProxyActor:
         return True  # True indicates it's sent successfully.
 
     def _get_stats(self):
-        return self._stats
+        with self._stats_lock:
+            return self._stats
 
     def _get_proxy_config(self, dest_party=None):
         return self._proxy_instance.get_proxy_config(dest_party)
