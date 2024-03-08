@@ -297,22 +297,41 @@ def init(
         ping_others(addresses=addresses, self_party=party, max_retries=3600)
 
 
-def shutdown():
+def shutdown(on_error: bool = None):
     """
     Shutdown a RayFed client.
+
+    Args:
+        on_error: optional; indicate whether an error has occurred on your main
+            thread. Rayfed is desigend to reliably send all data to peers, but will
+            cease transmission if an error is detected. However, Rayfed is not equipped
+            to automatically identify errors under all circumstances, particularly
+            those that affect only one party independently of others. Should you
+            encounter such an error, please notify Rayfed upon shutdown, and it will
+            discontinue any ongoing data transmissions if
+            `continue_waiting_for_data_sending_on_error` is not True.
+    --------
     """
     global_context = get_global_context()
     if global_context is not None and global_context.acquire_shutdown_flag():
-        _shutdown(True)
+        _shutdown(True, on_error)
 
 
-def _shutdown(intended=True):
+def _shutdown(intended=True, on_error: bool = None):
     """
     Shutdown a RayFed client.
 
     Args:
         intended: (Optional) Whether this is a intended shutdown. If not
-           a "failure handler" will be triggered and do not wait data sending.
+           a "failure handler" will be triggered.
+        on_error: optional; indicate whether an error has occurred on your main
+            thread. Rayfed is desigend to reliably send all data to peers, but will
+            cease transmission if an error is detected. However, Rayfed is not equipped
+            to automatically identify errors under all circumstances, particularly
+            those that affect only one party independently of others. Should you
+            encounter such an error, please notify Rayfed upon shutdown, and it will
+            discontinue any ongoing data transmissions if
+            `continue_waiting_for_data_sending_on_error` is not True.
     """
 
     if get_global_context() is None:
@@ -331,7 +350,7 @@ def _shutdown(intended=True):
 
     wait_for_sending = True
     if (
-        last_sending_error is not None or last_received_error is not None
+        on_error or last_sending_error is not None or last_received_error is not None
     ) and not global_context.get_continue_waiting_for_data_sending_on_error():
         wait_for_sending = False
     logging.info(f'{"Wait" if wait_for_sending else "No wait"} for data sending.')
@@ -359,8 +378,8 @@ def _shutdown(intended=True):
         # Clean context.
         compatible_utils._clear_internal_kv()
         clear_global_context(wait_for_sending=wait_for_sending)
-
-        _stop_sender_proxy()
+        if wait_for_sending:
+            _stop_sender_proxy()
 
         logger.info("Shutdowned rayfed.")
 
