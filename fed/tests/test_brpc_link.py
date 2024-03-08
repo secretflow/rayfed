@@ -98,7 +98,7 @@ def shutdown_on_error(party):
     def sleep_fun(a):
         import time
 
-        time.sleep(20)
+        time.sleep(86400)
 
         return a
 
@@ -121,7 +121,7 @@ def shutdown_on_error(party):
     )
 
     try:
-        # Bob will sleep a while
+        # Bob will sleep a long time.
         a = sleep_fun.party('bob').remote(1)
 
         # Alice will get data from bob and brpc link is blocking.
