@@ -93,7 +93,7 @@ def test_fed_get_in_2_parties():
     assert p_alice.exitcode == 0 and p_bob.exitcode == 0
 
 
-def shutdown_with_error(party):
+def shutdown_on_error(party):
     @fed.remote
     def sleep_fun(a):
         import time
@@ -137,14 +137,14 @@ def shutdown_with_error(party):
     except Exception as e:
         pass
     finally:
-        # Alice can shutdown normmaly with a hint with_error==True.
-        fed.shutdown(with_error=True)
+        # Alice can shutdown normmaly with a hint on_error==True.
+        fed.shutdown(on_error=True)
         ray.shutdown()
 
 
 def test_shutdown_with_error_should_ok():
-    p_alice = multiprocessing.Process(target=shutdown_with_error, args=('alice',))
-    p_bob = multiprocessing.Process(target=shutdown_with_error, args=('bob',))
+    p_alice = multiprocessing.Process(target=shutdown_on_error, args=('alice',))
+    p_bob = multiprocessing.Process(target=shutdown_on_error, args=('bob',))
     p_alice.start()
     p_bob.start()
     p_alice.join()
