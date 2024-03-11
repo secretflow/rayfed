@@ -93,6 +93,65 @@ def test_fed_get_in_2_parties():
     assert p_alice.exitcode == 0 and p_bob.exitcode == 0
 
 
+def shutdown_on_error(party):
+    @fed.remote
+    def sleep_fun(a):
+        import time
+
+        time.sleep(86400)
+
+        return a
+
+    @fed.remote
+    def ok_fun(a):
+        return a
+
+    compatible_utils.init_ray(address='local')
+    addresses = {
+        'alice': '127.0.0.1:11012',
+        'bob': '127.0.0.1:11011',
+    }
+    from fed.proxy.brpc_link.link import BrpcLinkSenderReceiverProxy
+
+    fed.init(
+        addresses=addresses,
+        party=party,
+        receiver_sender_proxy_cls=BrpcLinkSenderReceiverProxy,
+        logging_level='debug',
+    )
+
+    try:
+        # Bob will sleep a long time.
+        a = sleep_fun.party('bob').remote(1)
+
+        # Alice will get data from bob and brpc link is blocking.
+        b = ok_fun.party('alice').remote(a)
+
+        c = ok_fun.party('alice').remote(1)
+        # Alice will send c to bob and sending will be blocked by getting.
+        ok_fun.party('bob').remote(c)
+
+        # alice will run into error and exit.
+        if party == 'alice':
+            raise Exception('test')
+    except Exception as e:
+        pass
+    finally:
+        # Alice can shutdown normmaly with a hint on_error==True.
+        fed.shutdown(on_error=True)
+        ray.shutdown()
+
+
+def test_shutdown_with_error_should_ok():
+    p_alice = multiprocessing.Process(target=shutdown_on_error, args=('alice',))
+    p_bob = multiprocessing.Process(target=shutdown_on_error, args=('bob',))
+    p_alice.start()
+    p_bob.start()
+    p_alice.join()
+    p_bob.join()
+    assert p_alice.exitcode == 0
+
+
 if __name__ == "__main__":
     import sys
 

@@ -57,7 +57,9 @@ class MessageQueueManager:
                 f"Starting new thread[{self._thread_name}] for message polling."
             )
             self._queue = deque()
-            self._thread = threading.Thread(target=_loop, name=self._thread_name)
+            self._thread = threading.Thread(
+                target=_loop, name=self._thread_name, daemon=True
+            )
             self._thread.start()
 
     def append(self, message):
